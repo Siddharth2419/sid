@@ -1,0 +1,47 @@
+pipeline {
+    agent any
+
+    tools {
+        terraform 'Terraform'
+    }
+
+    environment {
+        AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
+        GITHUB_TOKEN = credentials('token')
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git url: 'https://github.com/rajkumar-chauhan/network.git',
+                    branch: 'main',
+                    credentialsId: 'token'
+            }
+        }
+
+        stage('Terraform Format') {
+            steps {
+                sh 'terraform fmt'
+            }
+        }
+
+        stage('Terraform Init') {
+            steps {
+                sh 'terraform init'
+            }
+        }
+
+        stage('Terraform Plan') {
+            steps {
+                sh 'terraform plan -out=tfplan'
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
